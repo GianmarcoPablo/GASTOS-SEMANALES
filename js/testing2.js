@@ -13,6 +13,10 @@ class Presupuesto{
         this.restante = Number(presupuesto)
         this.gastos = []
     }
+    nuevoGasto(gasto){
+        this.gastos = [...this.gastos,gasto]
+        console.log(this.gastos)
+    }
 }
 
 class UI{
@@ -39,7 +43,23 @@ class UI{
             divMensaje.remove()
         },3000)
     }
+    agregarGastoListado(gastos){
+        limpiarHTML()
+        gastos.forEach(gasto=>{
+            const {nombre,cantidad,id} = gasto
+            const nuevoGasto = document.createElement("li")
+            nuevoGasto.className = "list-group-item d-flex justify-content-between align-items-center"
+            nuevoGasto.dataset.id = id
+            nuevoGasto.innerHTML = `${nombre} <span class="badge badge-primary badge-pill">${cantidad}</span>`
+            const btnBorrar = document.createElement("button")
+            btnBorrar.classList.add("btn","btn-danger","borrar-gasto")
+            btnBorrar.textContent = "X"
+            nuevoGasto.appendChild(btnBorrar)
+            gastoListado.appendChild(nuevoGasto)
+        })
+    }
 }
+let presupuesto;
 const ui = new UI()
 
 function preguntarPresupuesto(){
@@ -48,12 +68,13 @@ function preguntarPresupuesto(){
     if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0){
         window.location.reload()
     }
-    const presupuesto = new Presupuesto(presupuestoUsuario)
+    presupuesto = new Presupuesto(presupuestoUsuario)
     ui.insertarPresupuesto(presupuesto)
     console.log(presupuesto)
 }
 
-function agregarGasto(){
+function agregarGasto(e){
+    e.preventDefault()
     const nombre = document.querySelector("#gasto").value
     const cantidad = document.querySelector("#cantidad").value
 
@@ -62,6 +83,18 @@ function agregarGasto(){
     }else if(cantidad <= 0 || isNaN(cantidad)){
         ui.imprimirAlerta("Cantidad no valida","error")
     }else{
-        console.log("todo bem")
+        const gasto = {nombre,cantidad,id: Date.now() }
+        presupuesto.nuevoGasto(gasto)
+        ui.imprimirAlerta("Gasto Agregado")
+
+        const {gastos} = presupuesto
+        ui.agregarGastoListado(gastos)
+        formulario.reset()
+    }
+}
+
+function limpiarHTML(){
+    while(gastoListado.firstChild){
+        gastoListado.removeChild(gastoListado.firstChild)
     }
 }

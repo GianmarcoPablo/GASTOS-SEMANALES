@@ -1,4 +1,3 @@
-// variables y selectores
 const formulario = document.querySelector("#agregar-gasto")
 const gastoListado = document.querySelector("#gastos ul")
 
@@ -10,7 +9,7 @@ function cargarEventListeners(){
 
 class Presupuesto{
     constructor(presupuesto){
-        this.presupuesto = Number(presupuesto) 
+        this.presupuesto = Number(presupuesto)
         this.restante = Number(presupuesto)
         this.gastos = []
     }
@@ -19,7 +18,6 @@ class Presupuesto{
         console.log(this.gastos)
     }
 }
-
 class UI{
     insertarPresupuesto(cantidad){
         const {presupuesto,restante} = cantidad
@@ -35,6 +33,7 @@ class UI{
             divMensaje.classList.add("alert-success")
         }
         divMensaje.textContent = mensaje
+
         const errores = document.querySelectorAll(".error-message")
         if(errores.length === 0){
             document.querySelector(".primario").insertBefore(divMensaje, formulario)
@@ -43,14 +42,35 @@ class UI{
             divMensaje.remove()
         },3000)
     }
+    agregarGastoListado(gastos){
+        limpiarHTML()
+        gastos.forEach(gasto=>{
+            const {cantidad,nombre,id} = gasto
+
+            const nuevoGasto = document.createElement("li")
+            nuevoGasto.className = "list-group-item d-flex justify-content-between align-items-center"
+            nuevoGasto.dataset.id = id
+
+            nuevoGasto.innerHTML = `${nombre} <span class="badge badge-primary badge-pill">${cantidad}</span>`
+
+            const btnBorrar = document.createElement("button")
+            btnBorrar.classList.add("btn","btn-danger","borrar-gasto")
+            btnBorrar.textContent = "X"
+            nuevoGasto.appendChild(btnBorrar)
+
+            
+            gastoListado.appendChild(nuevoGasto)
+        })
+    }
 }
 
-const ui = new UI
 
-let presupuesto;
+const ui = new UI
+let presupuesto
+
 function preguntarPresupuesto(){
-    const presupuestoUsuario = prompt("¿Cual es tu presuspuestp?")
-    if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0 ){
+    const presupuestoUsuario = prompt("¿Cual es tu presupuesto?")
+    if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0){
         window.location.reload()
     }
     presupuesto = new Presupuesto(presupuestoUsuario)
@@ -65,12 +85,22 @@ function agregarGasto(e){
     const cantidad = document.querySelector("#cantidad").value
 
     if(nombre === "" || cantidad === ""){
-        ui.imprimirAlerta("Todos los mensajes son obligatorios","error")
+        ui.imprimirAlerta("Todos los campos son obligatorios","error")
     }else if(cantidad <= 0 || isNaN(cantidad)){
         ui.imprimirAlerta("Cantidad no valida","error")
     }else{
-        const gastos = {nombre,cantidad,id: Date.now()}
-        presupuesto.nuevoGasto(gastos)
-        ui.imprimirAlerta("Gasto agregado")
+        const gasto = {nombre,cantidad,id: Date.now()}
+        presupuesto.nuevoGasto(gasto)
+        ui.imprimirAlerta("Gasto Agregado correctamente")
+
+        const {gastos} = presupuesto
+        ui.agregarGastoListado(gastos)
+        formulario.reset()
+    }
+}
+
+function limpiarHTML(){
+    while(gastoListado.firstChild){
+        gastoListado.removeChild(gastoListado.firstChild)
     }
 }
