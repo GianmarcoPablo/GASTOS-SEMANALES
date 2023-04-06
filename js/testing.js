@@ -50,6 +50,18 @@ class UI{
             document.querySelector(".primario").insertBefore(divMesaje, formulario)
         }
     }
+    agregarGastoListado(gastos){
+        const {nombre,cantidad,id} = gastos
+        const nuevoGasto = document.createElement("li")
+        nuevoGasto.className = "list-group-item d-flex justify-content-between align-items-center"
+        nuevoGasto.dataset.id = id
+        nuevoGasto.innerHTML = `${nombre} <span class="badge badge-primary badge-pill">${cantidad}</span>`
+        const btnBorrar = document.createElement("button")
+        btnBorrar.classList.add("btn","btn-danger","borrar-gasto")
+        btnBorrar.textContent = "X"
+        nuevoGasto.appendChild(btnBorrar)
+        gastoListado.appendChild(nuevoGasto)
+    }
 }
 const ui = new UI()
 
@@ -63,8 +75,8 @@ function preguntarPresupuesto(){
         window.location.reload()
     }
     presupuesto = new Presupuesto(presupuestoUsuario)
-    console.log(presupuesto)
     ui.insertarPresupuesto(presupuesto)
+    console.log(presupuesto)
 } 
 
 function agregarGasto(e){
@@ -81,6 +93,9 @@ function agregarGasto(e){
         const gasto = {nombre,cantidad,id: Date.now()} // object literla enhasmen xdxd
         presupuesto.nuevoGasto(gasto)
         ui.imprimirAlerta("Gasto agregado correctamente")
+
+        const {gastos} = presupuesto
+        ui.agregarGastoListado(gastos)
         formulario.reset()
     }
 }
