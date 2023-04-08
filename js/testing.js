@@ -1,18 +1,16 @@
-//VARIABLES Y SELECTORES
+// variables y selectores
 const formulario = document.querySelector("#agregar-gasto")
 const gastoListado = document.querySelector("#gastos ul")
 
 
-
-//EVENTOS
-cargarEventListeners()
-function cargarEventListeners(){
+// eventos
+evenlisteners()
+function evenlisteners(){
     document.addEventListener("DOMContentLoaded",preguntarPresupuesto)
     formulario.addEventListener("submit",agregarGasto)
-
 }
 
-//CLASES
+// clases
 
 class Presupuesto{
     constructor(presupuesto){
@@ -22,80 +20,127 @@ class Presupuesto{
     }
 
     nuevoGasto(gasto){
-         this.gastos = [...this.gastos,gasto]
-         console.log(this.gastos)
+        this.gastos = [...this.gastos,gasto]
+        this.calcularRestante()
+    }
+    calcularRestante(){
+        const gastado = this.gastos.reduce( (total, gasto)=> total + gasto.cantidad, 0 )
+        this.presupuesto = this.presupuesto - gastado;
     }
 }
 
 class UI{
     insertarPresupuesto(cantidad){
+        //extraemos valor
         const {presupuesto,restante} = cantidad
-        document.querySelector("#total").textContent = presupuesto
-        document.querySelector("#restante").textContent = restante
+
+        //agregamos al html
+        document.querySelector("#total").textContent = presupuesto;
+        document.querySelector("#restante").textContent = restante;
     }
     imprimirAlerta(mensaje,tipo){
-        const divMesaje = document.createElement("div")
-        divMesaje.classList.add("text-center","alert","error-message")
-        if(tipo === "error"){ 
-            divMesaje.classList.add("alert-danger")
+        //crear el div
+        const divMensaje = document.createElement("div")
+        divMensaje.classList.add("text-center","alert")
+
+        if(tipo === "error"){
+            divMensaje.classList.add("alert-danger")
         }else{
-            divMesaje.classList.add("alert-success")
+            divMensaje.classList.add("alert-success")
         }
-        divMesaje.textContent = mensaje
-        const errores = document.querySelectorAll(".error-message")
-        setTimeout(()=>{
-            divMesaje.remove()
-        },3000)
-        if(errores.length === 0){
-            document.querySelector(".primario").insertBefore(divMesaje, formulario)
-        }
+        divMensaje.textContent = mensaje
+
+        document.querySelector(".primario").insertBefore(divMensaje, formulario)
+
+        //quitar del html
+        setTimeout(() => {
+            divMensaje.remove()
+        }, 3000);
     }
     agregarGastoListado(gastos){
-        const {nombre,cantidad,id} = gastos
-        const nuevoGasto = document.createElement("li")
-        nuevoGasto.className = "list-group-item d-flex justify-content-between align-items-center"
-        nuevoGasto.dataset.id = id
-        nuevoGasto.innerHTML = `${nombre} <span class="badge badge-primary badge-pill">${cantidad}</span>`
-        const btnBorrar = document.createElement("button")
-        btnBorrar.classList.add("btn","btn-danger","borrar-gasto")
-        btnBorrar.textContent = "X"
-        nuevoGasto.appendChild(btnBorrar)
-        gastoListado.appendChild(nuevoGasto)
+        
+        this.limpiarHTML()
+
+        // iterar sobre los gastos
+        gastos.forEach(gasto=>{
+            
+            const { cantidad, nombre, id} = gasto;
+
+            // crear un LI
+            const nuevoGasto = document.createElement("li");
+            nuevoGasto.className = "list-group-item d-flex justify-content-between align-items-center"
+            nuevoGasto.dataset.id = id
+
+            // agegar al HTML
+            nuevoGasto.innerHTML = `${nombre} <span class="badge badge-primary badge-pill"> $${cantidad}<span>`
+            // boton para borrar el gasto
+            const btnBorrar = document.createElement("button")
+            btnBorrar.classList.add("btn", "btn-danger", "borrar-gasto");
+            btnBorrar.innerHTML = "borrar &times"
+            nuevoGasto.appendChild(btnBorrar)
+            // agegar el html
+
+            gastoListado.appendChild(nuevoGasto)
+        })
+    }
+
+    limpiarHTML(){
+        while(gastoListado.firstChild){
+            gastoListado.removeChild(gastoListado.firstChild)
+        }
+    }
+    actualizarRestante(restante){
+        document.querySelector("#restante").textContent = restante
     }
 }
+
+//instanciar
 const ui = new UI()
+let presupuesto
 
-let presupuesto;
-
-//FUNCIONES 
-
+//funciones
 function preguntarPresupuesto(){
-    const presupuestoUsuario = prompt("¿Cual es tu presupuesto ?")
-    if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0){
+    const presupuestoUsuario = prompt("¿Cual es tu presupuesto?")
+    if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <=0){
         window.location.reload()
     }
     presupuesto = new Presupuesto(presupuestoUsuario)
+    console.log(presupuesto);
+
     ui.insertarPresupuesto(presupuesto)
-    console.log(presupuesto)
-} 
+}
 
+//añade gasto
 function agregarGasto(e){
-    e.preventDefault()
+    e.preventDefault();
 
+    //leer los datos del formulario
     const nombre = document.querySelector("#gasto").value
     const cantidad = Number(document.querySelector("#cantidad").value) 
 
+    //validar
     if(nombre === "" || cantidad === ""){
-        ui.imprimirAlerta("Ambos campos son obligatorios","error")
-    }else if(cantidad <= 0 || isNaN(cantidad)){
-        ui.imprimirAlerta("Cantidad no valida","error")
-    }else{
-        const gasto = {nombre,cantidad,id: Date.now()} // object literla enhasmen xdxd
-        presupuesto.nuevoGasto(gasto)
-        ui.imprimirAlerta("Gasto agregado correctamente")
+        ui.imprimirAlerta("Ambos campo son obligatorios","error")
 
-        const {gastos} = presupuesto
-        ui.agregarGastoListado(gastos)
-        formulario.reset()
+        return;S
+    }else if( cantidad <= 0 || isNaN(cantidad)){
+        ui.imprimirAlerta("cantidad no válida","error")
+        return;
     }
+
+    // generar un objeto con el gasto
+    const gasto = { nombre, cantidad, id: Date.now() }
+
+    //añade un nuevo gasto
+    presupuesto.nuevoGasto( gasto )
+
+    //mensaje de todo bien
+    ui.imprimirAlerta("gasto agregado correctamente")
+
+    //imprimir gasto
+    const { gastos,restante} = presupuesto
+    ui.agregarGastoListado(gastos)
+    ui.actualizarRestante(restante)
+    //reinicia el formulario
+    formulario.reset()
 }
