@@ -9,20 +9,25 @@ function eventListeners(){
 
 class Presupuesto{
     constructor(presupuesto){
-        this.presupuesto = Number(presupuesto) 
+        this.presupuesto = Number(presupuesto)
         this.restante = Number(presupuesto)
         this.gastos = []
     }
     nuevoGasto(gasto){
         this.gastos = [...this.gastos, gasto]
-        console.log(this.gastos)
+        this.calcularRestante()
+    }
+    calcularRestante(){
+        const gastado = this.restante.reduce((total,gasto)=> total+= gasto.cantidad)
+        this.restante = this.presupuesto - gastado
+        console.log(this.restante)
     }
 }
 
 class UI{
     insertarPresupuesto(cantidad){
         const {presupuesto,restante} = cantidad
-        document.querySelector("#total").textContent = presupuesto
+        document.querySelector("#total").textContent =  presupuesto
         document.querySelector("#restante").textContent = restante
     }
     imprimirAlerta(mensaje,tipo){
@@ -35,9 +40,9 @@ class UI{
         }
         divMensaje.textContent = mensaje
 
-        setTimeout(()=>{
+        setTimeout(() => {
             divMensaje.remove()
-        },3000)
+        }, 3000);
 
         const errores = document.querySelectorAll(".error-message")
         if(errores.length === 0){
@@ -49,15 +54,18 @@ class UI{
         gastos.forEach(gasto=>{
             const {nombre,cantidad,id} = gasto
             const nuevoGasto = document.createElement("li")
-            nuevoGasto.dataset.id = id
             nuevoGasto.className = `list-group-item d-flex justify-content-between align-items-center`
-            nuevoGasto.innerHTML = `
+            nuevoGasto.dataset.id = id
+
+            nuevoGasto.innerHTML =`
                 ${nombre} <span class="badge badge-primary badge-pull">${cantidad}</span>
             `
+
             const btnBorrar = document.createElement("button")
             btnBorrar.classList.add("btn","btn-danger","borrar-gasto")
             btnBorrar.textContent = "X"
             nuevoGasto.appendChild(btnBorrar)
+
             $gastoListado.appendChild(nuevoGasto)
         })
     }
@@ -66,31 +74,29 @@ class UI{
 const ui = new UI()
 let presupuesto;
 
-
 function preguntarPresupuesto(){
-    const presupuestoUsuario = prompt("Ingrese tu presupuesto")
-    if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0){
+    const presupuestoUsuario = prompt("Ingrese el presupuesto")
+    if(presupuestoUsuario === "" || presupuestoUsuario === null || isNaN(presupuestoUsuario) || presupuestoUsuario <= 0 ){
         window.location.reload()
     }
+
     presupuesto = new Presupuesto(presupuestoUsuario)
     ui.insertarPresupuesto(presupuesto)
 }
 
-
 function agregarGasto(e){
     e.preventDefault()
     const nombre = document.querySelector("#gasto").value
-    const cantidad = Number(document.querySelector("#cantidad").value) 
+    const cantidad = document.querySelector("#cantidad").value
 
     if(nombre === "" || cantidad === ""){
         ui.imprimirAlerta("Todos los campos son obligatorios","error")
-    }else if(cantidad <=0 || isNaN(cantidad)){
-        ui.imprimirAlerta("Cantidad no valida","error")
+    }else if(cantidad <= 0 || isNaN(cantidad)){
+        ui.imprimirAlerta("cantidad no valida","error")
     }else{
-        ui.imprimirAlerta("Gasto agregado correctamente","exito")
+        ui.imprimirAlerta("Gasto agregado correctamente")
         $formulario.reset()
-
-        const gasto = {nombre,cantidad,id: Date.now}
+        const gasto = {nombre,cantidad,id:Date.now()}
         presupuesto.nuevoGasto(gasto)
         const {gastos} = presupuesto
         ui.agregarGastoListado(gastos)
